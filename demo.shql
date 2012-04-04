@@ -1,0 +1,140 @@
+# Demo for SHQL
+# Create table customer
+create table customer (
+	name 30,
+	age  3,
+	status 1)
+/p/g
+
+# Put one person in the table
+insert into customer values ( 'Fred', 32, 'G' )/p/g
+
+# Study the table
+help customer
+/p/g
+select * from customer/p/g
+
+# Add two more people
+insert into customer values 
+( 'Barney', 29, 'G', 'Wilma', 28, 'D' )
+/p/g
+print customer
+/p/g
+
+# Get customers with 'G' status
+select * from customer
+where status = 'G' /p/g
+
+# Get sorted list of customers by age
+select * from customer
+order by age num
+/p/g 
+
+# Make a table to hold customer status codes and their descriptions
+create table codes ( 
+	code 1,
+	description 10 )
+/p/g
+
+# Insert status codes
+insert into codes values 
+( 'G', 'Good', 'B', 'Bad', 'D', 'Dead Beat' )
+/p/g
+
+# Create a view so we can see the customer name and status description
+create view custstat ( customer.status = codes.code )
+/p/g
+
+# Look at the table
+help custstat
+/p/g
+select * from custstat
+/p/g
+
+select * 
+from customer, codes
+where status = code
+/p/g
+
+# Replace 'Barney' with 'Bad Bart'
+update customer 
+set name = 'Bad Bart', status = 'X' 
+where age = 29
+/p/g
+
+print customer
+/p/g
+
+# Get all customers that have invalid status'es
+select * from customer
+where status not in select code 
+		    from codes
+/p/g
+
+# Remove 'Fred'
+delete from customer
+where age = 32
+/p/g
+
+# Get rid of view 
+drop view custstat
+/p/g
+
+# Create a holding table for old customers
+create table oldcust (
+	name 30,
+	status 1 )
+/p/g
+
+# Copy old customer to new table
+insert into oldcust ( 
+	name status )
+select name status 
+from customer
+where age > 28
+/p/g
+
+select avg(age)
+from customer
+/p/g
+
+select name
+from customer
+where age = select min(age)
+	    from customer
+/p/g
+
+# Look at table
+print oldcust
+/p/g
+
+# Delete customers moved over
+delete from customer
+where age > 28
+/p/g
+
+print customer
+/p/g
+
+# Try a union of the two tables
+select name age
+from customer
+union
+select name status 
+from oldcust
+/p/g
+
+# Show example of executing Unix commands
+insert into customer 
+values ( '`date`', `ls / | wc -l`, 'Y' )
+/p/g
+print customer
+/p/g
+# Clean up
+drop table codes
+/p/g
+drop table customer
+/p/g
+drop table oldcust
+/p/g
+/q	
