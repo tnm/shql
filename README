@@ -16,11 +16,10 @@
 	directory with 777 ('rwxrwxrwx') if you want the database to be 
 	sharable, and 700 ('rwx------') to be private.  Of course, multiple
 	databases are possible.  A database called 'mydb' may be created
-	as a directory $HOME/mydb, $HOME/shql/mydb, ./mydb, or as 
-	$SHQL_ROOT/mydb, where $SHQL_ROOT is defined below.  The -q
-	option turns off the display of headings so the output of shql
-	can be used by other programs by caputuring all lines that begin
-	the pipe symbol.
+	as a directory $HOME/shql/mydb, ./mydb, or as $SHQL_ROOT/mydb, where 
+  $SHQL_ROOT is defined below.  The -q option turns off the display of 
+  headings so the output of shql can be used by other programs by 
+  caputuring all lines that begin the pipe symbol.
 
   	The program is patterned after Ingres's interactive sql terminal
 	monitor program.  Terminal monitor commands begin with either a
@@ -91,6 +90,10 @@
 	If you have comments, suggestions, or bug reports contact:
 
 		Bruce Momjian, root@candle.pha.pa.us
+
+  This version of shql is maintained by:
+    
+    Ted Nyman, ted@ted.io
 
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Version: 2.6.1

@@ -8,8 +8,7 @@
 
 # $Id: shql,v 1.23 1995/06/11 02:23:58 root Exp root $
 
-# DEFINE THESE
-SHQL_ROOT="/u/shql"		# system-wide database location
+SHQL_ROOT="${SHQL_ROOT:=/u/shql}" # respect env for SHQL_ROOT, else default
 EDITOR="${EDITOR:=/usr/bin/vi}" # default editor if EDITOR not defined
 SHELL="${SHELL:=/bin/sh}" 	# default editor if SHELL not defined
 
@@ -18,12 +17,17 @@ SHELL="${SHELL:=/bin/sh}" 	# default editor if SHELL not defined
 DEBUG="N"	# set to Y for debugging
 
 [ "$DEBUG" = "Y" ] && set -x   		# uncomment for debugging
+
 #set -v
 UMASK=`umask`
 umask 0000		# share database
-trap "echo \"Goodbye\" ; \
+
+# Print an exit message and remove temp files
+trap "echo \"Exiting shql.\" ; \
     rm -f /tmp/$$ /tmp/$$row /tmp/$$join*" 0 1 2 3 15
-set -h			# remember functions
+
+# remember functions
+set -h			
 
 if echo '\c' | grep -s c ; then		# to adapt to System V vs. BSD 'echo'
 	NOCR1='-n'			# BSD
@@ -53,17 +57,18 @@ then	echo "Missing database name." 1>&2
 fi
 echo "Database: $1"
 
+# Search through the acceptable databases and cd into the first we find.
+# If we can't find a directory with the name of our database, print a message
+# to that point and exit.
 if [ -d $HOME/shql/$1 ]
 then	cd $HOME/shql/$1
 elif [ -d $SHQL_ROOT/$1 ]
 then	cd $SHQL_ROOT/$1
-elif [ -d $HOME/$1 ]
-then	cd $HOME/$1
 elif [ -d $1 ]
 then	cd $1
-else 	echo "Unknown database ($1)" 1>&2
+else 	echo "Unknown database: ($1)" 1>&2
 	echo "The database name must be a directory under $HOME/shql" 1>&2
-	echo "	or a directory under $SHQL_ROOT" 1>&2
+	echo "     or a directory under $SHQL_ROOT" 1>&2
 	exit 1
 fi
 
