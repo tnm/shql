@@ -519,7 +519,12 @@ insert(){
 				eval $XECHO >> $TABLE~
 			fi
 		done
-		echo "($ROWS rows)"			
+    if [[ $ROWS == "1" ]]
+    then
+    		echo "($ROWS row)"			
+    else
+		    echo "($ROWS rows)"
+    fi
 	fi
 }
 
@@ -538,8 +543,9 @@ delete(){
 	if [ "X$4" = "Xwhere" ]
 	then 	shift 3
 		where "$@" && 
-		awk -F"	" "! $WHERE { cnt += 1 ; print } 
-			END { printf \"( %1d rows)\\n\", (NR - cnt) \
+		awk -F"	" "! $WHERE { cnt += 1 ; print }
+      ROWS = NR -cnt 
+			END { printf \"(%1d rows)\\n\", ($ROWS) \
 			>\"/tmp/$$row\" }" $TABLE~ > /tmp/$$ && 
 			mv /tmp/$$ $TABLE~ && cat /tmp/$$row
 	else	echo '('`cat $TABLE~ | wc -l`' rows)' 
@@ -572,7 +578,7 @@ update(){
 	awk -F"	" "BEGIN { OFS = \"	\" }
 		$WHERE 	{ $ASSIGN; cnt += 1 }
 			{ print } 
-		END 	{ printf \"( %1d rows)\\n\", cnt >\"/tmp/$$row\" }" \
+		END 	{ printf \"(%1d rows)\\n\", cnt >\"/tmp/$$row\" }" \
 		$TABLE~ > /tmp/$$ && 
 			mv /tmp/$$ $TABLE~ && cat /tmp/$$row
 }
@@ -763,7 +769,7 @@ select_(){
 			fi |
 			awk -F"	" \
 			"$WHERE { cnt += 1 ; printf \"$PRINTF\\n\", $FIELDS }
-			END	{ printf \"( %1d rows)\\n\", (cnt - 1) \
+			END	{ printf \"(%1d rows)\\n\", (cnt - 1) \
 			>\"/tmp/$$row\" }" - $TABLEFILE | eval "$DIST" \
 				&& if [ "$DISTINCT" = "" ]
 				   then	cat /tmp/$$row
