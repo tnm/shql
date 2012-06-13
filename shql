@@ -1,16 +1,21 @@
 #!/bin/sh
-# use /bin/sh, /bin/ksh, or /bin/bash
 #
-# shql - version 1.3
+# shql - version 2.0
+# shell sql
 #
-# by Bruce Momjian, root@candle.pha.pa.us
-#
+# originally by Bruce Momjian, root@candle.pha.pa.us
+# updates by Ted Nyman, ted@ted.io
 
 # $Id: shql,v 1.23 1995/06/11 02:23:58 root Exp root $
 
-SHQL_ROOT="${SHQL_ROOT:=/u/shql}" # respect env for SHQL_ROOT, else default
-EDITOR="${EDITOR:=/usr/bin/vi}" # default editor if EDITOR not defined
-SHELL="${SHELL:=/bin/sh}" 	# default editor if SHELL not defined
+
+#### Environment
+#==============================================================================
+
+# Respect env for SHQL_ROOT, EDITOR, and SHELL. Otherwise, set some defaults.
+SHQL_ROOT="${SHQL_ROOT:=/u/shql}" 
+EDITOR="${EDITOR:=/usr/bin/vi}" 
+SHELL="${SHELL:=/bin/sh}" 	
 
 # Unix table file postfixes:  @ is attrib, ~ is data, % is view
 
@@ -22,10 +27,16 @@ DEBUG="N"	# set to Y for debugging
 UMASK=`umask`
 umask 0000		# share database
 
-# trap sig's 0, 1, 2, 3 and 15 and then print an exit message and 
+# trap sig's 0, 1, 2, 3 and 15, print an exit message and 
 # remove temp files
-trap "echo 'Exiting shql.'; \
-    rm -f /tmp/$$ /tmp/$$row /tmp/$$join*; exit;" 0 1 2 3 15
+trap "echo 'Exiting shql'; clean_up; exit;" 0 1 2 3 15
+
+#### Utility Functions
+#==============================================================================
+
+clean_up() {
+  rm -f /tmp/$$ /tmp/$$row /tmp/$$join*
+}
 
 # remember functions
 set -h			
@@ -37,9 +48,15 @@ else
 	NOCR1=""			# System V
 	NOCR2='\c'
 fi
+
+# define newline and tab defaults
 NL='
 '
 TAB='	'
+
+
+#### Startup
+#==============================================================================
 
 if [ "X$1" = "X-q" ] 
 then	QUIET="Y"
@@ -50,14 +67,15 @@ _IFS="$IFS"
 
 export _IFS TABLE CMD NOCR1 NOCR2 NL TAB QUIET DEBUG
 
-if [ "X$1" = "X" ]
+# If the first argument is missing, print an error message and exit.
+if [[ -z $1 ]]
 then	echo "Missing database name." 1>&2
 	echo "The database name must be a directory under $HOME/shql" 1>&2
 	echo "	or a directory under $SHQL_ROOT" 1>&2
 	exit 1
 fi
-echo "Database: $1"
 
+echo "Database: $1"
 # Search through the acceptable databases and cd into the first we find.
 # If we can't find a directory with the name of our database, print a message
 # to that point and exit.
@@ -75,7 +93,7 @@ fi
 
 
 
-## SYNTAX MESSAGES
+## Syntax
 ## ------------------
 # 
 # If the user gives bad input, print out a message informing
@@ -111,7 +129,7 @@ return 0
 ;;
 		edit) cat <<"END"
 EDIT table_name
-is a non-standard method of changing a table's field names or display widths.
+is a non-standard method of changing field names or display widths for a table.
 END
 return 0
 ;;
@@ -189,7 +207,7 @@ return 0
 	return 1
 }
 
-#
+#
 #**************************************************************************
 # lookup_field
 #**************************************************************************
