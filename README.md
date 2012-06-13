@@ -1,12 +1,13 @@
-S H Q L
+shql
 ============
 
 **shql** is a program that reads SQL commands interactively and
-executes those commands by creating and manipulating Unix files.
+executes those commands by **creating and manipulating Unix files**.
 
 This program requires a bourne shell that understands functions,
 as well as `awk`, `grep`, `cut`, `sort`, `uniq`, `join`, `wc`, 
 and `sed`.
+
 
 Usage
 ----------
@@ -15,13 +16,10 @@ This script can be invoked with the command
 
   `shql [-q] {database name}`
 
-A directory must be created for the database before you may use it.
+**A directory must be created for the database before you may use it**.
 This directory will house all data files for a single database.
-
-All datafiles are created with mode 666 ('rw-rw-rw-'), so create the
-directory with 777 ('rwxrwxrwx') if you want the database to be 
-sharable, and 700 ('rwx------') to be private.  Of course, multiple
-databases are possible.  
+The directory name should match the database name. Of course, multiple
+databases are possible, with different directories.
 
 A database called, for example, 'mydb' may be created as a directory 
 as either:
@@ -30,6 +28,10 @@ as either:
 * `./mydb`
 * `$SHQL_ROOT/mydb`, where $SHQL_ROOT is user-defined.
 
+All datafiles are created with mode 666 ('rw-rw-rw-'), so create the
+directory with 777 ('rwxrwxrwx') if you want the database to be 
+sharable, and 700 ('rwx------') to be private.  
+
 The `-q` option turns off the display of headings so the output of shql 
 can be used by other programs by caputuring all lines that begin the 
 pipe symbol.
@@ -37,11 +39,13 @@ pipe symbol.
 The program is patterned after Ingres's interactive sql terminal
 monitor program.  Terminal monitor commands begin with either a
 forward or backward-slash.  Forward slashes may appear at the end of
-a command line. Back-slashes are accepted for compatability.  The /g
-is the 'go' command, /p is print, and /q is quit.  Try 'help commands'
-for a full list.  Because of this, if you need a slash as the
-second to last character on a line, you should add a space
-between the slash and the last character.
+a command line. Back-slashes are accepted for compatability.  
+
+The `/g` is the 'go' command, `/p` is print, and `/q` is quit.  
+Because of this, if you need a slash as the second to last character on a line, 
+you should add a space between the slash and the last character.
+
+Try `help commands` for a full list of commands.
 
 To get started, invoke shql with a database name.  Use the directory 
 name you created above. Type
@@ -49,8 +53,9 @@ name you created above. Type
   `shql mydb`
 
 if the directory you created was 'mydb'.  Once shql starts up, you 
-should see the database name displayed, and then a '*'. At this
-point, the most valuable thing is to type help,
+should see the database name displayed, and then a `*`. 
+
+At this point, the most valuable thing is to type help,
 
   `help`
   `/g`
@@ -88,10 +93,10 @@ Subselects are implemented, but must be the last operand of a
 In most cases, commas are optional.  NULLs are not implemented.
 Aggregates like AVG() are implemented, but not with GROUP BY.
 
-When INSERTing strings that contain the characters !,*,=,>,<,(, or ),
-spaces or backslashes may be added during the insert.  This is a
-side-effect of the string manipulation needed to properly
-parse the command parameters.
+When INSERTing strings that contain the characters `!`, `*`,`=`,
+`>`,`<`, `(`, or `)`, spaces or backslashes may be added during 
+the insert.  This is a side-effect of the string manipulation 
+needed to properly parse the command parameters.
 
 This SQL is type-less, so specify just the column width when creating
 tables.  This is used only for display purposes.  Shql is
@@ -107,18 +112,10 @@ its original format.  Grave accents (`) may be used to execute
 unix command from with shql.  Environment variables may also be
 used. See the demo for an example, i.e. "cat demo.shql | shql mydb".
 
-If you have comments, suggestions, or bug reports contact:
+shql was originally written in the early 90's by Bruce Momjian:
+
 Bruce Momjian, root@candle.pha.pa.us
 
------BEGIN PGP PUBLIC KEY BLOCK-----
-Version: 2.6.1
-
-mQBtAy6pceUAAAEDAM9YKKJiqG7AzjLIyvqmDHvjVnmCG0QlhNZm3EdpcbIZBEUJ
-41zWuGhvusiC99MeXy43kxSF4pJLFWhLDYRk1unVvz5y3B+xyERhig3h/AWWRaxH
-J4HzFdeKgclqllqhVQAFEbQlQnJ1Y2UgTW9tamlhbiA8cm9vdEBjYW5kbGUucGhh
-LnBhLnVzPg==
-=S8mw
------END PGP PUBLIC KEY BLOCK-----
-
 This version of shql is maintained by:
+
 Ted Nyman, ted@ted.io
