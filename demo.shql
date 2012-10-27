@@ -1,4 +1,5 @@
-# Demo for SHQL
+# Demo for shql
+
 # Create table customer
 create table customer (
 	name 30,
@@ -15,7 +16,7 @@ help customer
 select * from customer/p/g
 
 # Add two more people
-insert into customer values 
+insert into customer values
 ( 'Barney', 29, 'G', 'Wilma', 28, 'D' )
 /p/g
 print customer
@@ -28,16 +29,16 @@ where status = 'G' /p/g
 # Get sorted list of customers by age
 select * from customer
 order by age num
-/p/g 
+/p/g
 
 # Make a table to hold customer status codes and their descriptions
-create table codes ( 
+create table codes (
 	code 1,
 	description 10 )
 /p/g
 
 # Insert status codes
-insert into codes values 
+insert into codes values
 ( 'G', 'Good', 'B', 'Bad', 'D', 'Dead Beat' )
 /p/g
 
@@ -51,14 +52,14 @@ help custstat
 select * from custstat
 /p/g
 
-select * 
+select *
 from customer, codes
 where status = code
 /p/g
 
 # Replace 'Barney' with 'Bad Bart'
-update customer 
-set name = 'Bad Bart', status = 'X' 
+update customer
+set name = 'Bad Bart', status = 'X'
 where age = 29
 /p/g
 
@@ -67,7 +68,7 @@ print customer
 
 # Get all customers that have invalid status'es
 select * from customer
-where status not in select code 
+where status not in select code
 		    from codes
 /p/g
 
@@ -76,7 +77,7 @@ delete from customer
 where age = 32
 /p/g
 
-# Get rid of view 
+# Get rid of view
 drop view custstat
 /p/g
 
@@ -87,9 +88,9 @@ create table oldcust (
 /p/g
 
 # Copy old customer to new table
-insert into oldcust ( 
+insert into oldcust (
 	name status )
-select name status 
+select name status
 from customer
 where age > 28
 /p/g
@@ -120,12 +121,12 @@ print customer
 select name age
 from customer
 union
-select name status 
+select name status
 from oldcust
 /p/g
 
 # Show example of executing Unix commands
-insert into customer 
+insert into customer
 values ( '`date`', `ls / | wc -l`, 'Y' )
 /p/g
 print customer
@@ -137,4 +138,4 @@ drop table customer
 /p/g
 drop table oldcust
 /p/g
-/q	
+/q
