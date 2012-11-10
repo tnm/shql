@@ -28,15 +28,14 @@ as either:
 
 * `$HOME/shql/mydb`
 * `./mydb`
-* `$SHQL_ROOT/mydb`, where $SHQL_ROOT is user-defined.
+* `$SHQL_ROOT/mydb`, where `$SHQL_ROOT` is user-defined.
 
 All datafiles are created with mode 666 ('rw-rw-rw-'), so create the
 directory with 777 ('rwxrwxrwx') if you want the database to be 
 sharable, and 700 ('rwx------') to be private.  
 
 The `-q` option turns off the display of headings so the output of shql 
-can be used by other programs by caputuring all lines that begin the 
-pipe symbol.
+can be cleanly piped into other programs.
 
 The program is patterned after Ingres's interactive sql terminal
 monitor program.  Terminal monitor commands begin with either a
