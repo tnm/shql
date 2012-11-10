@@ -61,8 +61,13 @@ should see the database name displayed, and then a `*`.
 
 At this point, the most valuable thing is to type help,
 
-  `help`
-  `/g`
+```
+help
+```
+
+```
+/g
+```
 
 You may then go on.  The command `help syntax` displays syntax
 for all SQL operations, and 'help commands' displays all shql
