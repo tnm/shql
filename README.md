@@ -121,9 +121,11 @@ directly from the tables.  To operate on non-shql data files,
 create a dummy table with the proper fields, then copy your file
 into your shql data directory, replacing your delimiters with
 tabs, then run shql on the table, and convert the table back to 
-its original format.  Grave accents (`) may be used to execute 
-unix command from with shql.  Environment variables may also be
-used. See the demo for an example, i.e. `cat demo.shql | shql mydb`.
+its original format.  
+
+Backticks may be used to execute unix commands (carefully) from with shql. 
+Environment variables may also be used. See the demo for an example, 
+i.e. `cat demo.shql | shql mydb`.
 
 **shql** was originally written in the early 90's by Bruce Momjian:
 
