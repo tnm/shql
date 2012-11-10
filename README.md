@@ -14,7 +14,9 @@ Usage
 
 This script can be invoked with the command 
 
-  `shql [-q] {database name}`
+```
+shql [-q] {database name}
+```
 
 **A directory must be created for the database before you may use it**.
 This directory will house all data files for a single database.
@@ -50,7 +52,9 @@ Try `help commands` for a full list of commands.
 To get started, invoke shql with a database name.  Use the directory 
 name you created above. Type
 
-  `shql mydb`
+```
+shql mydb
+```
 
 if the directory you created was 'mydb'.  Once shql starts up, you 
 should see the database name displayed, and then a `*`. 
@@ -66,7 +70,9 @@ workspace commands.
 
 Try the demo:
 
-  `./shql < demo.shql`
+```
+./shql < demo.shql
+```
 
 shql can execute only one operation at a time, but operations can
 be spread over several lines.
