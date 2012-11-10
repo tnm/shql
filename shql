@@ -87,8 +87,8 @@ elif [ -d $1 ]
 then	cd $1
 else 	echo "Unknown database: ($1)" 1>&2
 	echo "The database name must be a directory under $HOME/shql" 1>&2
-	echo "  or a directory under shql's root $SHQL_ROOT," 1>&2
-        echo "  or a directory name relative to this one.
+	echo "  or a directory under shql's root $SHQL_ROOT" 1>&2
+        echo "  or a directory name relative to this one." 1>&2
 	exit 1
 fi
 
