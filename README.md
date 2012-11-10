@@ -74,7 +74,7 @@ be spread over several lines.
 Operations
 ------------
 
-Shql operations are allow 'select' operations on multiple tables.
+Shql operations allow `select` operations on multiple tables.
 Table names are read from left to write in select's 'from'
 section, so the tables should be ordered with the most central
 tables first.  In two-table joins, it doesn't matter.  In three
@@ -88,12 +88,12 @@ say 'my_id = my_id'.  Views can also be used to create
 multi-table selects.
 
 Subselects are implemented, but must be the last operand of a
-'where' clause, most useful with 'in'.
+`where` clause, most useful with `in`.
 
-In most cases, commas are optional.  NULLs are not implemented.
-Aggregates like AVG() are implemented, but not with GROUP BY.
+In most cases, commas are optional.  `NULL`s are not implemented.
+Aggregates like `AVG()` are implemented, but not with `GROUP BY`.
 
-When INSERTing strings that contain the characters `!`, `*`,`=`,
+When `INSERT`ing strings that contain the characters `!`, `*`,`=`,
 `>`,`<`, `(`, or `)`, spaces or backslashes may be added during 
 the insert.  This is a side-effect of the string manipulation 
 needed to properly parse the command parameters.
