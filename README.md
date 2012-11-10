@@ -52,7 +52,7 @@ To get started, invoke shql with a database name.  Use the directory
 name you created above. Type
 
 ```
-shql mydb
+./shql mydb
 ```
 
 if the directory you created was 'mydb'.  Once shql starts up, you 
@@ -75,7 +75,8 @@ workspace commands.
 Try the demo because it is fun:
 
 ```
-./shql < demo.shql
+mkdir mydb
+./shql mydb < demo.shql
 ```
 
 **shql** can execute only one operation at a time, but operations can
