@@ -6,8 +6,6 @@
 # originally by Bruce Momjian, root@candle.pha.pa.us
 # updates by Ted Nyman, ted@ted.io
 
-# $Id: shql,v 1.23 1995/06/11 02:23:58 root Exp root $
-
 
 #### Environment
 #==============================================================================
@@ -17,14 +15,12 @@ SHQL_ROOT="${SHQL_ROOT:=/u/shql}"
 EDITOR="${EDITOR:=/usr/bin/vi}" 
 SHELL="${SHELL:=/bin/sh}" 	
 
-# Unix table file postfixes:  @ is attrib, ~ is data, % is view
-
 # set to Y for debugging
 DEBUG="N"	
 [ "$DEBUG" = "Y" ] && set -x   	
 
 UMASK=`umask`
-umask 0000		# share database
+umask 0000 # share database
 
 # trap sig's 0, 1, 2, 3 and 15, print an exit message and 
 # remove temp files
