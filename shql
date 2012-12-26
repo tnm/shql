@@ -19,11 +19,10 @@ SHELL="${SHELL:=/bin/sh}"
 
 # Unix table file postfixes:  @ is attrib, ~ is data, % is view
 
-DEBUG="N"	# set to Y for debugging
+# set to Y for debugging
+DEBUG="N"	
+[ "$DEBUG" = "Y" ] && set -x   	
 
-[ "$DEBUG" = "Y" ] && set -x   		# uncomment for debugging
-
-#set -v
 UMASK=`umask`
 umask 0000		# share database
 
