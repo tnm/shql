@@ -92,10 +92,11 @@ tables first.  In two-table joins, it doesn't matter.  In three
 table joins, if you join table A-to-B and B-to-C, B must not be
 the last table in the from clause, because shql will not be able
 to join tables A-C. If you get the message `Join not found, try
-reordering tables`, this is probably the problem.  Also
-qualified field names are not understood, like tablename.fieldname,
+reordering tables`, this is probably the problem.
+
+Qualified field names are not understood, like `tablename.fieldname`,
 so if you are joining my_id in table A with my_id in table B, just
-say 'my_id = my_id'.  Views can also be used to create
+say `my_id = my_id`.  Views can also be used to create
 multi-table selects.
 
 Subselects are implemented, but must be the last operand of a
