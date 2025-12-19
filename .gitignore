@@ -1,0 +1,18 @@
+# Claude Code
+.claude/
+
+# Temp files
+/tmp/
+*.tmp
+
+# Editor backups
+*~
+*.swp
+*.swo
+.*.swp
+
+# macOS
+.DS_Store
+
+# Test databases (temp dirs)
+test_db_*/

@@ -6,8 +6,15 @@ executes those commands by **creating and manipulating Unix files**.
 
 This program requires a shell that understands functions,
 as well as `awk`, `grep`, `cut`, `sort`, `uniq`, `join`, `wc`, 
-and `sed`. I'm going to assume your shell has that. 
+and `sed`.
 
+Important
+------------
+
+**shql** was originally written in the early 90's by Bruce Momjian.
+All subsequent work *must* be compatible with the Bourne shell that shipped
+with [SVR4](https://en.wikipedia.org/wiki/UNIX_System_V#SVR4).
+Relevant tests are in `test/test_posix_compliance.sh`. *Unix SVR4.2: Catch the Wave*
 
 Usage
 ----------
@@ -40,7 +47,7 @@ can be cleanly piped into other programs.
 The program is patterned after the ancient and glorious Ingres's 
 interactive sql terminal monitor program.  Terminal monitor commands begin 
 with either a forward or backward-slash.  Forward slashes may appear at the end of
-a command line. Back-slashes are accepted for compatability.  
+a command line. Back-slashes are accepted for compatibility.  
 
 The `/g` is the 'go' command, `/p` is print, and `/q` is quit.  
 Because of this, if you need a slash as the second to last character on a line, 
@@ -86,7 +93,7 @@ Operations
 ------------
 
 **shql** operations allow `select` operations on multiple tables.
-Table names are read from left to write in select's 'from'
+Table names are read from left to right in select's 'from'
 section, so the tables should be ordered with the most central
 tables first.  In two-table joins, it doesn't matter.  In three
 table joins, if you join table A-to-B and B-to-C, B must not be
@@ -136,3 +143,12 @@ Bruce Momjian, root@candle.pha.pa.us
 This version of **shql** is maintained by:
 
 Ted Nyman, ted@ted.io
+
+Testing
+---------
+
+```
+./test/run_tests.sh
+```
+
+Runs 122 tests: tokenizer, unit tests, integration tests, and POSIX compliance.

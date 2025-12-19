@@ -10,6 +10,14 @@
 #### Environment
 #==============================================================================
 
+# Find script directory and source tokenizer
+SHQL_DIR=`dirname "$0"`
+if [ ! -f "$SHQL_DIR/lib/tokenizer.sh" ]; then
+	echo "Error: tokenizer not found at $SHQL_DIR/lib/tokenizer.sh" 1>&2
+	exit 1
+fi
+. "$SHQL_DIR/lib/tokenizer.sh"
+
 # Respect env for SHQL_ROOT, EDITOR, and SHELL. Otherwise, set some defaults.
 SHQL_ROOT="${SHQL_ROOT:=/u/shql}" 
 EDITOR="${EDITOR:=/usr/bin/vi}" 
@@ -30,11 +38,12 @@ trap "echo 'Exiting shql'; clean_up; exit;" 0 1 2 3 15
 #==============================================================================
 
 clean_up() {
-  rm -f /tmp/$$ /tmp/$$row /tmp/$$join*
+  rm -f /tmp/$$ /tmp/$$row /tmp/$$join* /tmp/$$tok
 }
 
-# remember functions
-set -h			
+# remember functions (hash commands) - not available in all shells
+# use subshell test to avoid fatal error in dash/posh
+(set -h) 2>/dev/null && set -h
 
 if echo '\c' | grep -s c ; then		# to adapt to System V vs. BSD 'echo'
 	NOCR1='-n'			# BSD
@@ -63,7 +72,7 @@ _IFS="$IFS"
 export _IFS TABLE CMD NOCR1 NOCR2 NL TAB QUIET DEBUG
 
 # If the first argument is missing, print an error message and exit.
-if [[ -z $1 ]]
+if [ -z "$1" ]
 then	echo "Missing database name." 1>&2
 	echo "The database name must be a directory under $HOME/shql" 1>&2
 	echo "	or a directory under $SHQL_ROOT" 1>&2
@@ -279,7 +288,7 @@ do_join(){
 	  grep -v "^$4	" $3@ ) > $5@
 	sort -t\	 +$JFIELD2L1 $3~ > /tmp/$$
 	sort -t\	 +$JFIELD1L1 $1~ | \
-		join -t\	 -j1 $JFIELD1 -j2 $JFIELD2 \
+		join -t\	 -1 $JFIELD1 -2 $JFIELD2 \
 						- /tmp/$$ > $5~
 }
 
@@ -333,6 +342,17 @@ where(){
 				WHERE="$INWHERE"
 				break;;
 			*)	lookup_field "$1"
+				# Convert single-quoted strings to double-quoted for awk
+				case "$OUTFIELD" in
+					\'*\')
+						# Strip quotes and re-add as double
+						_inner=`printf '%s' "$OUTFIELD" | cut -c2-`
+						_len=`printf '%s' "$_inner" | wc -c | tr -d ' '`
+						_len=`expr "$_len" - 1`
+						_inner=`printf '%s' "$_inner" | cut -c1-"$_len"`
+						OUTFIELD="\"$_inner\""
+						;;
+				esac
 				WHERE="$WHERE $OUTFIELD";;
 		esac
 		LAST="$1"
@@ -395,29 +415,42 @@ create(){
 	then	echo "Table already exists." 1>&2
 	elif [ "X$1" = "Xview" -a $# -gt 2 ]
 	then	shift
-		if [ $# -ne 6 ]
+		# Handle both "table.column" (1 token) and "table . column" (3 tokens)
+		# With split tokens: viewname ( table . col = table . col )
+		if [ $# -ne 6 -a $# -ne 10 ]
 		then 	syntax create
-		else 	
-			[ "X$2" != "X(" ] && echo "Bad syntax" 1>&2 && 
+		else
+			[ "X$2" != "X(" ] && echo "Bad syntax" 1>&2 &&
 							syntax create && return
-			TABLE1="`expr $3 : '\([^\.]*\)'`"
-			FIELD1="`expr $3 : '[^\.]*.\(.*\)'`"
+			if [ $# -eq 10 ]
+			then
+				# Tokens split: $3=table $4=. $5=field $6== $7=table $8=. $9=field $10=)
+				TABLE1="$3"
+				FIELD1="$5"
+				[ "X$4" != "X." ] && echo "Bad syntax" 1>&2 && syntax create && return
+				[ "X$6" != "X=" ] && echo "Bad syntax" 1>&2 && syntax create && return
+				TABLE2="$7"
+				FIELD2="$9"
+				[ "X$8" != "X." ] && echo "Bad syntax" 1>&2 && syntax create && return
+			else
+				# Original format: $3=table.field $4== $5=table.field $6=)
+				TABLE1="`expr $3 : '\([^\.]*\)'`"
+				FIELD1="`expr $3 : '[^\.]*.\(.*\)'`"
+				[ "X$4" != "X=" ] && echo "Bad syntax" 1>&2 &&
+								syntax create && return
+				TABLE2="`expr $5 : '\([^\.]*\)'`"
+				FIELD2="`expr $5 : '[^\.]*.\(.*\)'`"
+			fi
 			TABLE="$TABLE1"
-			lookup_field "$FIELD1" 
+			lookup_field "$FIELD1"
 			[ "$?" -ne 0 ] && echo "Bad table or field name" 1>&2 &&
-									return
-			[ "X$4" != "X=" ] && echo "Bad syntax" 1>&2 && 
-							syntax create && return
-			TABLE2="`expr $5 : '\([^\.]*\)'`"
-			FIELD2="`expr $5 : '[^\.]*.\(.*\)'`"
+								return
 			TABLE="$TABLE2"
-			lookup_field "$FIELD2" 
+			lookup_field "$FIELD2"
 			[ "$?" -ne 0 ] && echo "Bad table or field name" 1>&2 &&
-									return
-			[ "X$2" != "X(" ] && echo "Bad syntax" 1>&2 && 
-							syntax create && return
+								return
 			echo "$TABLE1 $FIELD1 $TABLE2 $FIELD2 $1" > $1%
-			update_view "$1"			
+			update_view "$1"
 		fi
 		echo "OK"
 	elif [ "X$1" = "Xtable" -a $# -ge 5 ] 
@@ -535,7 +568,7 @@ insert(){
 				eval $XECHO >> $TABLE~
 			fi
 		done
-    if [[ $ROWS == "1" ]]
+    if [ "$ROWS" = "1" ]
     then
     		echo "($ROWS row)"			
     else
@@ -558,11 +591,10 @@ delete(){
 	WHERE=""
 	if [ "X$4" = "Xwhere" ]
 	then 	shift 3
-		where "$@" && 
+		where "$@" &&
 		awk -F"	" "! $WHERE { cnt += 1 ; print }
-      ROWS = NR -cnt 
-			END { printf \"(%1d rows)\\n\", ($ROWS) \
-			>\"/tmp/$$row\" }" $TABLE~ > /tmp/$$ && 
+			END { printf \"(%1d rows)\\n\", (NR - cnt) \
+			>\"/tmp/$$row\" }" $TABLE~ > /tmp/$$ &&
 			mv /tmp/$$ $TABLE~ && cat /tmp/$$row
 	else	echo '('`cat $TABLE~ | wc -l`' rows)' 
 		> $TABLE~
@@ -576,7 +608,7 @@ delete(){
 update(){
 	TABLE="$2"
 	update_view "$TABLE" && echo "Can not update a view." 1>&2 && return
-	[ ! -f "$TABLE@" ] && echo "$TABLE does not exit." 1>&2 && return
+	[ ! -f "$TABLE@" ] && echo "$TABLE does not exist." 1>&2 && return
 	[ "X$3" != "Xset" ] && echo "Improper syntax." 1>&2 && syntax update && 
 									return
 	shift 3
@@ -774,26 +806,26 @@ select_(){
 		if [ "$SUBSELECT" ]
 		then	awk -F"	" "$WHERE {printf \"$PRINTF\", $FIELDS }" \
 							$TABLEFILE |eval "$DIST"
-		else    if [ ! "$QUIET" -o "$INAGG" = "Y" ]
-			then 
-			( set X `cut -d\	 -f1 $TABLE@` ; shift 
-			  echo $NOCR1 "-$1-$NOCR2" ; shift 
-		  	  for HEADING
-			  do 
-				echo $NOCR1 "$TAB-$HEADING-$NOCR2" 
-	 		  done ; echo "" )
-			fi |
+		else
+			# Print header separately (not through awk)
+			if [ ! "$QUIET" -o "$INAGG" = "Y" ]
+			then
+				( set X `cut -d\	 -f1 $TABLE@` ; shift
+				  echo $NOCR1 "-$1-$NOCR2" ; shift
+				  for HEADING
+				  do
+					echo $NOCR1 "$TAB-$HEADING-$NOCR2"
+				  done ; echo "" )
+			fi
+			# Process data rows only (no header in count)
 			awk -F"	" \
 			"$WHERE { cnt += 1 ; printf \"$PRINTF\\n\", $FIELDS }
-			END	{ printf \"(%1d rows)\\n\", (cnt - 1) \
-			>\"/tmp/$$row\" }" - $TABLEFILE | eval "$DIST" \
+			END	{ printf \"(%1d rows)\\n\", cnt \
+			>\"/tmp/$$row\" }" $TABLEFILE | eval "$DIST" \
 				&& if [ "$DISTINCT" = "" ]
 				   then	cat /tmp/$$row
-				   else if [ "$QUIET" = "" ]
-					then	X=`expr \`cat /tmp/$$row|wc -l\` - 1`
-					else	X=`expr \`cat /tmp/$$row|wc -l\``
-					fi
-					echo '('$X' rows)' 
+				   else	X=`cat /tmp/$$row | wc -l | tr -d ' '`
+					echo '('$X' rows)'
 				fi
 		fi
 	done
@@ -851,20 +883,13 @@ do
 		NEW=""
 	done
 
-	CMD=`echo "$_CMD" | sed \
-		-e "s/'/\"/g" \
-		-e 's/\"\([^\"]*\)\"/\"\\\"\1\\\"\"/g' \
-		-e 's/\([<>!=][<>!=]*\)/ \1 /g' \
-		-e 's/</\\\</g' \
-		-e 's/>/\\\>/g' \
-		-e 's/\*/\\\*/g' \
-		-e 's/(/ \\\( /g' \
-		-e 's/)/ \\\) /g'`
-	[ ! "$CMD" ] && continue
-	IFS="$_IFS,"
-	eval set X $CMD
-	shift
-	IFS="$_IFS"
+	# Tokenize the command and convert to positional parameters
+	tokenize "$_CMD" > /tmp/$$tok
+	[ ! -s /tmp/$$tok ] && continue
+	set --
+	while IFS= read _token; do
+		set -- "$@" "$_token"
+	done < /tmp/$$tok
 	NEW="Y"
 	case $1 in
 		select) 	select_ "$@";; 
