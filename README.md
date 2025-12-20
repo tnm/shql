@@ -1,7 +1,7 @@
 shql
 ============
 
-**shql** is a program that reads SQL commands interactively and
+`shql` is a program that reads SQL commands interactively and
 executes those commands by **creating and manipulating Unix files**.
 
 This program requires a shell that understands functions,
@@ -11,10 +11,12 @@ and `sed`.
 Notable
 ------------
 
-**shql** was originally written in the early 90's by Bruce Momjian.
-All subsequent work *must* be compatible with the Bourne shell that shipped
-with [SVR4](https://en.wikipedia.org/wiki/UNIX_System_V#SVR4).
-Relevant tests are in `test/test_posix_compliance.sh`. *Unix SVR4.2: Catch the Wave*
+`shql` was originally written in the early 90's by Bruce Momjian.
+All subsequent work **must be compatible with the Bourne shell that shipped
+with [SVR4](https://en.wikipedia.org/wiki/UNIX_System_V#SVR4) in 1989.**
+Relevant tests are in `test/test_posix_compliance.sh`. 
+
+Unix SVR4.2: *Catch the Wave*
 
 ### New things
 
@@ -22,9 +24,9 @@ Relevant tests are in `test/test_posix_compliance.sh`. *Unix SVR4.2: Catch the W
 - Comprehensive test suite (145 tests covering tokenizer, functions, integration, and POSIX compliance)
 - Runs correctly under `dash` and other strict POSIX shells
 
-### Improvements
+### Some fixes
 
-- **UPDATE with quoted strings** — `UPDATE` now works with string values containing spaces (e.g., `set name = 'Bad Bart'`)
+- **UPDATE with quoted strings** — `UPDATE` now works with string values containing spaces
 - **Subselect accuracy** — Queries like `where age = select min(age) from users` now return correct results (previously included spurious first-row matches)
 - Headers now printed from schema files rather than data files
 
@@ -98,13 +100,13 @@ mkdir mydb
 ./shql mydb < demo.shql
 ```
 
-**shql** can execute only one operation at a time, but operations can
+`shql` can execute only one operation at a time, but operations can
 be spread over several lines. 
 
 Operations
 ------------
 
-**shql** operations allow `select` operations on multiple tables.
+`shql` operations allow `select` operations on multiple tables.
 Table names are read from left to right in select's 'from'
 section, so the tables should be ordered with the most central
 tables first.  In two-table joins, it doesn't matter.  In three
@@ -130,13 +132,13 @@ the insert.  This is a side-effect of the string manipulation
 needed to properly parse the command parameters.
 
 This SQL is type-less, so specify just the column width when creating
-tables.  This is used only for display purposes.  **shql** is
+tables.  This is used only for display purposes.  `shql` is
 case-sensitive, and expects SQL key words to be in lower case.
 
-Unix is a Thing
------------------
+Unix
+-----
 
-Commands can be piped into shql.  The table data files are
+Commands can be piped into `shql`.  The table data files are
 tab delimited, so `awk` scripts can be used to generate reports 
 directly from the tables.  To operate on non-shql data files,
 create a dummy table with the proper fields, then copy your file
@@ -144,15 +146,15 @@ into your shql data directory, replacing your delimiters with
 tabs, then run shql on the table, and convert the table back to 
 its original format.  
 
-Backticks may be used to execute unix commands (carefully) from with shql. 
+Backticks may be used to execute unix commands (carefully) from with `shql.`
 Environment variables may also be used. See the demo for an example, 
 i.e. `cat demo.shql | shql mydb`.
 
-**shql** was originally written in the early 90's by Bruce Momjian:
+`shql` was originally written in the early 90's by Bruce Momjian:
 
 Bruce Momjian, root@candle.pha.pa.us
 
-This version of **shql** is maintained by:
+This version of `shql` is maintained by:
 
 Ted Nyman, ted@ted.io
 
