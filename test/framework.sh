@@ -106,6 +106,26 @@ assert_contains() {
     fi
 }
 
+# Assert string does NOT contain substring
+assert_not_contains() {
+    local haystack="$1"
+    local needle="$2"
+    local msg="${3:-should not contain}"
+
+    _TESTS_RUN=$((_TESTS_RUN + 1))
+
+    if printf '%s' "$haystack" | grep -qF "$needle"; then
+        _TESTS_FAILED=$((_TESTS_FAILED + 1))
+        printf "${RED}FAIL${NC}: %s\n" "$msg"
+        printf "  should not contain: %s\n" "$needle"
+        printf "  actual: %s\n" "$haystack"
+        return 1
+    else
+        _TESTS_PASSED=$((_TESTS_PASSED + 1))
+        return 0
+    fi
+}
+
 # Assert output matches expected (multiline friendly)
 assert_output() {
     local actual="$1"

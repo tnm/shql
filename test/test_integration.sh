@@ -33,6 +33,11 @@ run_shql_data() {
     echo "$1" | "$SHQL" -q "$TEST_DB" 2>&1 | grep -v "^Database:" | grep -v "^Exiting"
 }
 
+# Run shql WITHOUT quiet mode (to test header behavior)
+run_shql_verbose() {
+    echo "$1" | "$SHQL" "$TEST_DB" 2>&1 | grep -v "^Database:" | grep -v "^Exiting"
+}
+
 #-----------------------------------------------------------------------------
 # Basic operations
 #-----------------------------------------------------------------------------
@@ -153,6 +158,52 @@ select * from users
 ")
 
     assert_contains "$output" "31" "age updated to 31"
+    assert_contains "$output" "(1 rows)" "update reports 1 row"
+
+    teardown_db
+}
+
+test_update_string_with_spaces() {
+    setup_db
+
+    local output
+    output=$(run_shql_data "
+create table users ( name 20, age 3 )
+/g
+insert into users values ( 'Alice', 30 )
+/g
+update users set name = 'Alice Smith' where age = 30
+/g
+select * from users
+/g
+/q
+")
+
+    assert_contains "$output" "Alice Smith" "name updated to 'Alice Smith'"
+    assert_contains "$output" "(1 rows)" "update reports 1 row"
+    assert_not_contains "$output" "syntax error" "no awk syntax error"
+
+    teardown_db
+}
+
+test_update_multiple_fields() {
+    setup_db
+
+    local output
+    output=$(run_shql_data "
+create table users ( name 20, age 3, status 1 )
+/g
+insert into users values ( 'Bob', 25, 'A' )
+/g
+update users set name = 'Bob Jones', status = 'B' where age = 25
+/g
+select * from users
+/g
+/q
+")
+
+    assert_contains "$output" "Bob Jones" "name updated to 'Bob Jones'"
+    assert_contains "$output" "B" "status updated to B"
     assert_contains "$output" "(1 rows)" "update reports 1 row"
 
     teardown_db
@@ -347,6 +398,30 @@ select name from users where age = select max(age) from users
 ")
 
     assert_contains "$output" "Carol" "subquery finds max age (Carol, 35)"
+    assert_contains "$output" "(1 rows)" "subquery returns exactly 1 row"
+
+    teardown_db
+}
+
+test_subquery_min() {
+    setup_db
+
+    # Use verbose mode to catch the NR==1 header bug
+    local output
+    output=$(run_shql_verbose "
+create table users ( name 20, age 3 )
+/g
+insert into users values ( 'Alice', 30, 'Bob', 25, 'Carol', 20 )
+/g
+select name from users where age = select min(age) from users
+/g
+/q
+")
+
+    assert_contains "$output" "Carol" "subquery finds min age (Carol, 20)"
+    assert_not_contains "$output" "Alice" "Alice (30) should not match min"
+    assert_not_contains "$output" "Bob" "Bob (25) should not match min"
+    assert_contains "$output" "(1 rows)" "subquery returns exactly 1 row"
 
     teardown_db
 }
@@ -468,6 +543,89 @@ help users
     assert_contains "$output" "<users>" "help shows table name"
     assert_contains "$output" "name" "help shows columns"
     assert_contains "$output" "Rows:" "help shows row count"
+
+    teardown_db
+}
+
+#-----------------------------------------------------------------------------
+# Subquery: in / not in
+#-----------------------------------------------------------------------------
+
+test_in_subquery() {
+    setup_db
+
+    local output
+    output=$(run_shql_data "
+create table users ( name 20, status 1 )
+/g
+insert into users values ( 'Alice', 'A', 'Bob', 'B', 'Carol', 'C' )
+/g
+create table valid ( code 1 )
+/g
+insert into valid values ( 'A', 'B' )
+/g
+select name from users where status in select code from valid
+/g
+/q
+")
+
+    assert_contains "$output" "Alice" "Alice (A) is in valid codes"
+    assert_contains "$output" "Bob" "Bob (B) is in valid codes"
+    assert_not_contains "$output" "Carol" "Carol (C) is not in valid codes"
+    assert_contains "$output" "(2 rows)" "in subquery returns 2 rows"
+
+    teardown_db
+}
+
+test_not_in_subquery() {
+    setup_db
+
+    local output
+    output=$(run_shql_data "
+create table users ( name 20, status 1 )
+/g
+insert into users values ( 'Alice', 'A', 'Bob', 'B', 'Carol', 'C' )
+/g
+create table valid ( code 1 )
+/g
+insert into valid values ( 'A', 'B' )
+/g
+select name from users where status not in select code from valid
+/g
+/q
+")
+
+    assert_not_contains "$output" "Alice" "Alice (A) should not appear"
+    assert_not_contains "$output" "Bob" "Bob (B) should not appear"
+    assert_contains "$output" "Carol" "Carol (C) not in valid codes"
+    assert_contains "$output" "(1 rows)" "not in subquery returns 1 row"
+
+    teardown_db
+}
+
+#-----------------------------------------------------------------------------
+# Verbose mode tests (non-quiet, to catch header bugs)
+#-----------------------------------------------------------------------------
+
+test_select_where_verbose() {
+    setup_db
+
+    # Use verbose mode to ensure WHERE filtering works with headers
+    local output
+    output=$(run_shql_verbose "
+create table users ( name 20, age 3 )
+/g
+insert into users values ( 'Alice', 30, 'Bob', 25, 'Carol', 20 )
+/g
+select name from users where age > 25
+/g
+/q
+")
+
+    assert_contains "$output" "Alice" "Alice (30) matches age > 25"
+    assert_not_contains "$output" "Bob" "Bob (25) should not match"
+    assert_not_contains "$output" "Carol" "Carol (20) should not match"
+    assert_contains "$output" "(1 rows)" "where returns 1 row"
 
     teardown_db
 }

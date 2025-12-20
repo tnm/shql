@@ -215,9 +215,28 @@ lookup_field(){
 	then 	OUTFIELD="$1"
 		return 1
 	else	OUTFIELDNUM="`expr "$RESULT" : '\([^:]*\)'`"
-		OUTFIELD="\$$OUTFIELDNUM" 
+		OUTFIELD="\$$OUTFIELDNUM"
 		return 0
 	fi
+}
+
+#
+#**************************************************************************
+# to_awk_string - convert single-quoted string to double-quoted for awk
+#**************************************************************************
+to_awk_string(){
+	# If it's a single-quoted string, convert to double-quoted for awk
+	case "$1" in
+		\'*\')
+			# Strip outer single quotes and wrap in double quotes
+			# Use awk for POSIX-compatible substring extraction
+			_inner=`printf '%s' "$1" | awk '{ print substr($0, 2, length($0) - 2) }'`
+			OUTFIELD="\"$_inner\""
+			;;
+		*)
+			OUTFIELD="$1"
+			;;
+	esac
 }
 
 #
@@ -343,16 +362,7 @@ where(){
 				break;;
 			*)	lookup_field "$1"
 				# Convert single-quoted strings to double-quoted for awk
-				case "$OUTFIELD" in
-					\'*\')
-						# Strip quotes and re-add as double
-						_inner=`printf '%s' "$OUTFIELD" | cut -c2-`
-						_len=`printf '%s' "$_inner" | wc -c | tr -d ' '`
-						_len=`expr "$_len" - 1`
-						_inner=`printf '%s' "$_inner" | cut -c1-"$_len"`
-						OUTFIELD="\"$_inner\""
-						;;
-				esac
+				to_awk_string "$OUTFIELD"
 				WHERE="$WHERE $OUTFIELD";;
 		esac
 		LAST="$1"
@@ -615,7 +625,14 @@ update(){
 	ASSIGN=""
 	while [ $# -gt 0 -a "X$1" != "Xwhere" ]
 	do
-		lookup_field "$1" && [ "X$2" = "X=" ] && ASSIGN="$ASSIGN ; "
+		if lookup_field "$1"
+		then
+			# It's a field name - check if next token is =
+			[ "X$2" = "X=" ] && ASSIGN="$ASSIGN ; "
+		else
+			# Not a field - convert quoted strings for awk
+			to_awk_string "$1"
+		fi
 		ASSIGN="$ASSIGN $OUTFIELD"
 		shift
 	done
@@ -749,9 +766,7 @@ select_(){
 			if [ "X$1" = "Xwhere" -a "$WHERE_USED" = "" ]
 			then
 				where "$@"
-				[ "$?" -ne 0 ] && return 1 
-				[ "$QUIET" = "" -a "$SUBSELECT" = "" ] && 
-						WHERE="$WHERE || NR == 1"
+				[ "$?" -ne 0 ] && return 1
 				WHERE_USED="Y"
 				shift
 			elif [ "X$1" = "Xorder" ]

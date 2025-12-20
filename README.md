@@ -8,13 +8,25 @@ This program requires a shell that understands functions,
 as well as `awk`, `grep`, `cut`, `sort`, `uniq`, `join`, `wc`, 
 and `sed`.
 
-Important
+Notable
 ------------
 
 **shql** was originally written in the early 90's by Bruce Momjian.
 All subsequent work *must* be compatible with the Bourne shell that shipped
 with [SVR4](https://en.wikipedia.org/wiki/UNIX_System_V#SVR4).
 Relevant tests are in `test/test_posix_compliance.sh`. *Unix SVR4.2: Catch the Wave*
+
+### New things
+
+- **SQL tokenizer** — Added a proper lexer (`lib/tokenizer.sh`) for robust parsing of quoted strings, operators, and identifiers
+- Comprehensive test suite (145 tests covering tokenizer, functions, integration, and POSIX compliance)
+- Runs correctly under `dash` and other strict POSIX shells
+
+### Improvements
+
+- **UPDATE with quoted strings** — `UPDATE` now works with string values containing spaces (e.g., `set name = 'Bad Bart'`)
+- **Subselect accuracy** — Queries like `where age = select min(age) from users` now return correct results (previously included spurious first-row matches)
+- Headers now printed from schema files rather than data files
 
 Usage
 ----------
@@ -151,4 +163,4 @@ Testing
 ./test/run_tests.sh
 ```
 
-Runs 122 tests: tokenizer, unit tests, integration tests, and POSIX compliance.
+Runs 145 tests: tokenizer, unit tests, integration tests, and POSIX compliance.
